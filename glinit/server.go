@@ -7,6 +7,7 @@ import (
 
 	"github.com/frediansah/goleafcore/glutil"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/sirupsen/logrus"
 )
@@ -31,6 +32,11 @@ func InitServer() *fiber.App {
 		}
 
 		app = fiber.New(config)
+
+		app.Use(logger.New(logger.Config{
+			TimeFormat: "2006-02-01 15:04:05",
+			TimeZone:   "Asia/Jakarta",
+		}))
 	})
 
 	return app
