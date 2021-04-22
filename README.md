@@ -1,1 +1,3 @@
-# goleafcore
+# goleaf-core
+
+Go leaf core
