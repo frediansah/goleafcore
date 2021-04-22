@@ -1,4 +1,4 @@
-module gitlab.com/frediansah/goleafcore
+module github.com/frediansah/goleafcore
 
 go 1.16
 
