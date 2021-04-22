@@ -4,12 +4,12 @@ import (
 	"log"
 	"testing"
 
+	"github.com/frediansah/goleafcore/glconstant"
+	"github.com/frediansah/goleafcore/gldb"
+	"github.com/frediansah/goleafcore/glinit"
+	"github.com/frediansah/goleafcore/glutil"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
-	"gitlab.com/stsgoleaf/goleafcore/glconstant"
-	"gitlab.com/stsgoleaf/goleafcore/gldb"
-	"gitlab.com/stsgoleaf/goleafcore/glinit"
-	"gitlab.com/stsgoleaf/goleafcore/glutil"
 )
 
 type User struct {

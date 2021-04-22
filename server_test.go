@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/frediansah/goleafcore/glinit"
 	"github.com/sirupsen/logrus"
-	"gitlab.com/stsgoleaf/goleafcore/glinit"
 )
 
 func TestFiber(t *testing.T) {

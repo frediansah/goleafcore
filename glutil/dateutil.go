@@ -3,7 +3,7 @@ package glutil
 import (
 	"time"
 
-	"gitlab.com/stsgoleaf/goleafcore/glconstant"
+	"github.com/frediansah/goleafcore/glconstant"
 )
 
 func DateTimeNow() string {

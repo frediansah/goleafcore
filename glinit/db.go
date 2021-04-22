@@ -6,9 +6,9 @@ import (
 	"os"
 	"sync"
 
+	"github.com/frediansah/goleafcore/glutil"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/sirupsen/logrus"
-	"gitlab.com/stsgoleaf/goleafcore/glutil"
 )
 
 var DB_CTX context.Context = context.Background()

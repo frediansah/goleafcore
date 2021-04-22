@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/frediansah/goleafcore/glinit"
+	"github.com/frediansah/goleafcore/glutil"
 	"github.com/sirupsen/logrus"
-	"gitlab.com/stsgoleaf/goleafcore/glinit"
-	"gitlab.com/stsgoleaf/goleafcore/glutil"
 )
 
 const TAG_GLEAF string = "gleaf"

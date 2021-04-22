@@ -5,10 +5,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/frediansah/goleafcore/glutil"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/sirupsen/logrus"
-	"gitlab.com/stsgoleaf/goleafcore/glutil"
 )
 
 var config fiber.Config
