@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func TestFiber(t *testing.T) {
+func testFiber(t *testing.T) {
 	glinit.InitLog()
 	db := glinit.InitDb()
 	server := glinit.InitServer()

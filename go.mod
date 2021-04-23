@@ -3,6 +3,7 @@ module github.com/frediansah/goleafcore
 go 1.16
 
 require (
+	github.com/georgysavva/scany v0.2.8
 	github.com/gofiber/fiber/v2 v2.8.0
 	github.com/google/uuid v1.2.0
 	github.com/jackc/pgproto3/v2 v2.0.7 // indirect

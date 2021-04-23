@@ -7,6 +7,7 @@ import (
 
 	"github.com/frediansah/goleafcore/glinit"
 	"github.com/frediansah/goleafcore/glutil"
+	"github.com/georgysavva/scany/pgxscan"
 	"github.com/sirupsen/logrus"
 )
 
@@ -16,6 +17,11 @@ const TAG_VALUE_SEQUENCE string = "seq"
 
 var cacheQueryI map[string]string = make(map[string]string)
 var cacheIndexI map[string][]int = make(map[string][]int)
+
+type ReturnSelect struct {
+	Error  error
+	Result interface{}
+}
 
 func Insert(obj interface{}, tableName string) error {
 
@@ -28,6 +34,32 @@ func Insert(obj interface{}, tableName string) error {
 	logrus.Debug("Result insert : ", result)
 	if err != nil {
 		logrus.Error("Error on insert : ", err)
+	}
+
+	return err
+}
+
+func Select(result *ReturnSelect, query string, params ...interface{}) error {
+	db := glinit.GetDB()
+	logrus.Debug("Select query : ", query)
+
+	err := pgxscan.Select(glinit.DB_CTX, db, result.Result, query, params...)
+	if err != nil {
+		result.Error = err
+		logrus.Error("Error detail : ", err)
+	}
+
+	return err
+}
+
+func Exec(query string, params ...interface{}) error {
+	db := glinit.GetDB()
+	logrus.Debug("Exec query : ", query)
+
+	command, err := db.Exec(glinit.DB_CTX, query, params...)
+	logrus.Debug("Result Command : ", command)
+	if err != nil {
+		logrus.Debug("Error command exec : ", err)
 	}
 
 	return err

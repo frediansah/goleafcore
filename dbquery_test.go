@@ -46,25 +46,43 @@ func testEntity(t *testing.T) {
 	glinit.InitLog()
 	glinit.InitDb()
 
-	user := User{
-		BaseEntity: BaseEntity{
-			CreateDatetime: "20210102021010",
-			UpdateDatetime: "20210102021010",
-			CreateUserId:   -1,
-			UpdateUserId:   -1,
-			Version:        0,
-		},
-		Username: uuid.New().String(),
-		Password: "sts123",
-	}
-
-	gldb.Insert(user, "t_user")
-
 	for i := 0; i < 1; i++ {
 		user2 := genUser()
 		err := gldb.Insert(user2, "t_user")
 		logrus.Debug("Apakah error user2 ? ", err)
 	}
+}
+
+func TestSelect(t *testing.T) {
+	glinit.InitLog()
+	glinit.InitDb()
+
+	var resultList []*UserTwo
+
+	err := gldb.Select(&gldb.ReturnSelect{
+		Result: &resultList,
+	}, `select * from t_user WHERE user_id <> -1`)
+	if err != nil {
+		log.Panicln("error", err)
+	}
+
+	if len(resultList) > 0 {
+		log.Println("Usernya? :", resultList[0])
+	}
+
+}
+
+func TestExec(t *testing.T) {
+	glinit.InitLog()
+	glinit.InitDb()
+
+	logrus.Debug("Test EXECUTE UPDATE")
+
+	err := gldb.Exec(`UPDATE t_user SET username = 'hahaha' WHERE user_id = $1`, 0)
+	if err != nil {
+		log.Panicln("error", err)
+	}
+
 }
 
 func genUser() UserTwo {
