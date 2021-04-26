@@ -1,6 +1,7 @@
 package goleafcore
 
 import (
+	"database/sql"
 	"log"
 	"testing"
 
@@ -20,25 +21,25 @@ type User struct {
 }
 
 type UserTwo struct {
-	UserId            int64  `json:"userId" gleaf:"pk,seq"`
-	TenantId          int64  `json:"tenantId"`
-	Username          string `json:"username"`
-	Email             string `json:"email"`
-	Fullname          string `json:"fullname"`
-	Password          string `json:"password"`
-	Phone             string `json:"phone"`
-	RoleDefaultId     int64  `json:"roleDefaultId"`
-	PrivateKey        string `json:"privateKey"`
-	CreateDatetime    string `json:"createDatetime"`
-	CreateUserId      int64  `json:"createUserId"`
-	UpdateDatetime    string `json:"updateDatetime"`
-	UpdateUserId      int64  `json:"updateUserId"`
-	Version           int64  `json:"version"`
-	Active            string `json:"active"`
-	ActiveDatetime    string `json:"activeDatetime"`
-	NonActiveDatetime string `json:"nonActiveDatetime"`
-	OuDefaultId       int64  `json:"ouDefaultId"`
-	PolicyDefaultId   int64  `json:"policyDefaultId"`
+	UserId            int64         `json:"userId" gleaf:"pk,seq"`
+	TenantId          int64         `json:"tenantId"`
+	Username          string        `json:"username"`
+	Email             string        `json:"email"`
+	Fullname          string        `json:"fullname"`
+	Password          string        `json:"password"`
+	Phone             string        `json:"phone"`
+	RoleDefaultId     int64         `json:"roleDefaultId"`
+	PrivateKey        string        `json:"privateKey"`
+	CreateDatetime    string        `json:"createDatetime"`
+	CreateUserId      int64         `json:"createUserId"`
+	UpdateDatetime    string        `json:"updateDatetime"`
+	UpdateUserId      int64         `json:"updateUserId"`
+	Version           int64         `json:"version"`
+	Active            string        `json:"active"`
+	ActiveDatetime    string        `json:"activeDatetime"`
+	NonActiveDatetime string        `json:"nonActiveDatetime"`
+	OuDefaultId       sql.NullInt64 `json:"ouDefaultId"`
+	PolicyDefaultId   sql.NullInt64 `json:"policyDefaultId"`
 }
 
 func testEntity(t *testing.T) {
@@ -56,12 +57,13 @@ func testEntity(t *testing.T) {
 func TestSelect(t *testing.T) {
 	glinit.InitLog()
 	glinit.InitDb()
+	logrus.Debug("START TEST SELECT")
 
 	var resultList []*UserTwo
 
 	err := gldb.Select(&gldb.ReturnSelect{
 		Result: &resultList,
-	}, `select * from t_user WHERE user_id <> -1`)
+	}, `select * from t_user WHERE user_id <> $1`, -1)
 	if err != nil {
 		log.Panicln("error", err)
 	}
@@ -72,7 +74,7 @@ func TestSelect(t *testing.T) {
 
 }
 
-func TestExec(t *testing.T) {
+func testExec(t *testing.T) {
 	glinit.InitLog()
 	glinit.InitDb()
 
@@ -103,7 +105,7 @@ func genUser() UserTwo {
 		Active:            glconstant.YES,
 		ActiveDatetime:    glutil.DateTimeNow(),
 		NonActiveDatetime: glconstant.EMPTY_VALUE,
-		OuDefaultId:       glconstant.NULL_REF_VALUE_FOR_LONG,
-		PolicyDefaultId:   glconstant.NULL_REF_VALUE_FOR_LONG,
+		OuDefaultId:       sql.NullInt64{Int64: glconstant.NULL_REF_VALUE_FOR_LONG},
+		PolicyDefaultId:   sql.NullInt64{Int64: glconstant.NULL_REF_VALUE_FOR_LONG},
 	}
 }

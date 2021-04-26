@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/frediansah/goleafcore/glinit"
 	"github.com/frediansah/goleafcore/glutil"
@@ -204,13 +205,22 @@ func getColumnNamesWithValues(obj interface{}, prefix string, values *[]interfac
 
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
+		valueItem := o.Field(i).Interface()
+
 		if checkForTags(field, ignoreTagValues...) {
 			ignoreKey = append(ignoreKey, i)
 
 			continue
 		}
 
-		if field.Type.Kind() != reflect.Struct {
+		typeTime := false
+		switch valueItem.(type) {
+		case time.Time:
+			typeTime = true
+			break
+		}
+
+		if typeTime || field.Type.Kind() != reflect.Struct {
 			columnName := getColumnName(field, prefix)
 			result = append(result, columnName)
 			*values = append(*values, o.Field(i).Interface())
