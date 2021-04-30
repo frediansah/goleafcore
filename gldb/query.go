@@ -1,6 +1,9 @@
 package gldb
 
 import (
+	"database/sql"
+	"errors"
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -9,6 +12,7 @@ import (
 	"github.com/frediansah/goleafcore/glinit"
 	"github.com/frediansah/goleafcore/glutil"
 	"github.com/georgysavva/scany/pgxscan"
+	"github.com/jackc/pgx/v4"
 	"github.com/sirupsen/logrus"
 )
 
@@ -24,6 +28,8 @@ type ReturnSelect struct {
 	Result interface{}
 }
 
+type TrxFunc = func(trx pgx.Tx) error
+
 func Insert(obj interface{}, tableName string) error {
 
 	values := make([]interface{}, 0)
@@ -31,7 +37,32 @@ func Insert(obj interface{}, tableName string) error {
 	db := glinit.GetDB()
 
 	logrus.Debug("Query insert : ", query)
+	logrus.Debug("Values size : ", len(values))
+
+	arr := fmt.Sprintf("%v", values...)
+	logrus.Debug("Isi values from insert : ", arr)
+
 	result, err := db.Exec(glinit.DB_CTX, query, values...)
+	logrus.Debug("Result insert : ", result)
+	if err != nil {
+		logrus.Error("Error on insert : ", err)
+	}
+
+	return err
+}
+
+func InsertTx(tx pgx.Tx, obj interface{}, tableName string) error {
+
+	values := make([]interface{}, 0)
+	query := queryInsertWithValues(obj, tableName, &values)
+
+	logrus.Debug("Query insert : ", query)
+	logrus.Debug("Values size : ", len(values))
+
+	arr := fmt.Sprintf("%v", values...)
+	logrus.Debug("Isi values from insert : ", arr)
+
+	result, err := tx.Exec(glinit.DB_CTX, query, values...)
 	logrus.Debug("Result insert : ", result)
 	if err != nil {
 		logrus.Error("Error on insert : ", err)
@@ -53,6 +84,89 @@ func Select(result *ReturnSelect, query string, params ...interface{}) error {
 	return err
 }
 
+func SelectOne(result interface{}, query string, params ...interface{}) error {
+	db := glinit.GetDB()
+	logrus.Debug("Select query : ", query)
+
+	err := pgxscan.Select(glinit.DB_CTX, db, result, query, params...)
+
+	return err
+}
+
+func SelectOneTx(tx pgx.Tx, result interface{}, query string, params ...interface{}) error {
+	logrus.Debug("Select query : ", query)
+
+	err := pgxscan.Select(glinit.DB_CTX, tx, result, query, params...)
+
+	return err
+}
+
+func FindByPkTx(tx pgx.Tx, result interface{}, tableName string, pk interface{}) error {
+	logrus.Debug("Find by PK tx")
+
+	columns := GetColumnNames(result, "")
+	pkColumn := FindPkColumn(result, "")
+
+	logrus.Debug("Columns : ", columns)
+	logrus.Debug("pk column : ", pkColumn)
+
+	if len(pkColumn) <= 0 {
+		return errors.New("result struct does not have tag gleaf:\"pk\"")
+	}
+
+	query := "SELECT " + AppendColumnNames(columns) + " FROM " + tableName +
+		` WHERE ` + pkColumn + ` = $1 `
+
+	logrus.Debug("Query find by pk : ", query)
+
+	err := pgxscan.Get(glinit.DB_CTX, tx, result, query, pk)
+
+	logrus.Debug("error query : ", err)
+	logrus.Debug("Resuls query list : ", result)
+
+	return err
+}
+
+func FindByPk(result *interface{}, tableName string, pk interface{}) error {
+	logrus.Debug("Find by PK")
+	db := glinit.GetDB()
+
+	columns := GetColumnNames(result, "")
+	pkColumn := FindPkColumn(result, "")
+
+	logrus.Debug("Columns : ", columns)
+	logrus.Debug("pk column : ", pkColumn)
+
+	if len(pkColumn) <= 0 {
+		return errors.New("result struct does not have tag gleaf:\"pk\"")
+	}
+
+	query := "SELECT " + AppendColumnNames(columns) + " FROM " + tableName +
+		` WHERE ` + pkColumn + ` = $1 `
+
+	logrus.Debug("Query find by pk : ", query)
+
+	err := pgxscan.Get(glinit.DB_CTX, db, result, query, pk)
+
+	logrus.Debug("error query : ", err)
+	logrus.Debug("Resuls query list : ", result)
+
+	return err
+}
+
+func SelectTx(tx pgx.Tx, result *ReturnSelect, query string, params ...interface{}) error {
+	//db := glinit.GetDB()
+	logrus.Debug("SelectTx query : ", query)
+
+	err := pgxscan.Select(glinit.DB_CTX, tx, result.Result, query, params...)
+	if err != nil {
+		result.Error = err
+		logrus.Error("Error detail : ", err)
+	}
+
+	return err
+}
+
 func Exec(query string, params ...interface{}) error {
 	db := glinit.GetDB()
 	logrus.Debug("Exec query : ", query)
@@ -64,6 +178,41 @@ func Exec(query string, params ...interface{}) error {
 	}
 
 	return err
+}
+
+func ExecTx(trx pgx.Tx, query string, params ...interface{}) error {
+	//db := glinit.GetDB()
+	logrus.Debug("ExecTx query : ", query)
+
+	command, err := trx.Exec(glinit.DB_CTX, query, params...)
+	logrus.Debug("Result ExecTx Command : ", command)
+	if err != nil {
+		logrus.Debug("Error ExecTx : ", err)
+	}
+
+	return err
+}
+
+func BeginTrx(trxFun TrxFunc) error {
+	db := glinit.InitDb()
+
+	trx, err := db.Begin(glinit.DB_CTX)
+	if err != nil {
+		return err
+	}
+
+	errTrx := trxFun(trx)
+
+	if errTrx == nil {
+		logrus.Debug("Transaction success, commited")
+		trx.Commit(glinit.DB_CTX)
+	} else {
+		logrus.Debug("Transaction error, rolled back : ", errTrx)
+
+		trx.Rollback(glinit.DB_CTX)
+	}
+
+	return errTrx
 }
 
 func queryInsertWithValues(obj interface{}, tableName string, values *[]interface{}) string {
@@ -82,6 +231,7 @@ func queryInsertWithValues(obj interface{}, tableName string, values *[]interfac
 
 	columnNames := getColumnNamesWithValues(obj, "", values, TAG_VALUE_SEQUENCE)
 
+	logrus.Debug("Length from get column name with values : ", len(*values))
 	result := ""
 	result = `INSERT INTO ` + tableName + ` ( ` +
 		AppendColumnNames(columnNames) + ` ) ` +
@@ -99,7 +249,8 @@ func retriveValueExeptAt(obj interface{}, ignoreIndex []int, values *[]interface
 		if existInArray(i, ignoreIndex) {
 			continue
 		}
-		*values = append(*values, o.Field(i).Interface())
+		val := o.Field(i).Interface()
+		*values = append(*values, &val)
 	}
 }
 
@@ -150,39 +301,90 @@ func AppendColumnNames(columnNames []string) string {
 	return result
 }
 
-func getColumnNames(obj interface{}, prefix string, ignoreTagValues ...string) []string {
+func FindPkColumn(obj interface{}, prefix string) string {
+	var result string
+	t := reflect.TypeOf(obj)
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		if checkForTags(field, TAG_VALUE_PK) {
+			return getColumnName(field, prefix)
+		}
+	}
+
+	return result
+}
+
+func GetColumnNames(obj interface{}, prefix string, ignoreTagValues ...string) []string {
+	logrus.Debug("Get column names ", obj)
+	usePtr := false
+
 	if obj == nil {
 		return make([]string, 0)
 	}
 
 	t := reflect.TypeOf(obj)
-	o := reflect.ValueOf(obj)
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+		usePtr = true
+	}
 
+	logrus.Debug("Type of object ", t)
+
+	o := reflect.ValueOf(obj)
+	if usePtr {
+		o = o.Elem()
+	}
+
+	logrus.Debug("Value of object ", o)
+
+	logrus.Debug("Does not struct? ", t.Kind())
 	if t.Kind() != reflect.Struct {
 		return make([]string, 0)
 	}
 
 	result := make([]string, 0)
 
+	logrus.Debug("Begin loop ")
+
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
+		logrus.Debug("field ", field)
+		valueItem := o.Field(i).Interface()
+		logrus.Debug("valueItem ", valueItem)
+
 		if checkForTags(field, ignoreTagValues...) {
 			continue
 		}
 
-		if field.Type.Kind() != reflect.Struct {
-			columnName := getColumnName(field, prefix)
-			result = append(result, columnName)
+		if isStructField(valueItem) {
+
+			subValue := o.Field(i).Interface()
+			result = append(result, GetColumnNames(subValue, prefix, ignoreTagValues...)...)
 
 		} else {
-
-			subValue := reflect.Indirect(o).FieldByName(field.Name).Interface()
-			result = append(result, getColumnNames(subValue, prefix)...)
+			columnName := getColumnName(field, prefix)
+			result = append(result, columnName)
+			logrus.Debug("Append value : ", o.Field(i).Interface())
 		}
-
 	}
 
+	logrus.Debug("DONE Get column name")
+
 	return result
+}
+
+func isStructField(valueItem interface{}) bool {
+	switch valueItem.(type) {
+	case time.Time, sql.NullTime, sql.NullInt64, sql.NullString, sql.NullBool, sql.NullFloat64,
+		sql.NullInt32:
+		return false
+	}
+
+	return reflect.TypeOf(valueItem).Kind() == reflect.Struct
 }
 
 func getColumnNamesWithValues(obj interface{}, prefix string, values *[]interface{}, ignoreTagValues ...string) []string {
@@ -192,6 +394,7 @@ func getColumnNamesWithValues(obj interface{}, prefix string, values *[]interfac
 
 	t := reflect.TypeOf(obj)
 	o := reflect.ValueOf(obj)
+	logrus.Debug("Get column name from : ", t.Name())
 
 	cacheKey := genCacheKey(obj)
 
@@ -207,24 +410,33 @@ func getColumnNamesWithValues(obj interface{}, prefix string, values *[]interfac
 		field := t.Field(i)
 		valueItem := o.Field(i).Interface()
 
+		logrus.Debug("Proses field ", field.Name, " --> ", valueItem)
+
 		if checkForTags(field, ignoreTagValues...) {
 			ignoreKey = append(ignoreKey, i)
-
 			continue
 		}
 
 		typeTime := false
 		switch valueItem.(type) {
-		case time.Time:
+		case time.Time, sql.NullTime:
 			typeTime = true
-			break
 		}
 
 		if typeTime || field.Type.Kind() != reflect.Struct {
 			columnName := getColumnName(field, prefix)
 			result = append(result, columnName)
+
+			logrus.Debug("Len before : ", len(*values))
+
 			*values = append(*values, o.Field(i).Interface())
+			logrus.Debug("Append value : ", o.Field(i).Interface())
+
+			logrus.Debug("Len after : ", len(*values))
+
 		} else {
+			logrus.Debug("Masuk sini kan? ", t.Field(i).Name)
+			logrus.Debug("Masuk sini kan? ", len(*values))
 			subValue := o.Field(i).Interface()
 			result = append(result, getColumnNamesWithValues(subValue, prefix, values, ignoreTagValues...)...)
 		}
