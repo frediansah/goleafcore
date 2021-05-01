@@ -23,7 +23,7 @@ type TableTestInsertTx struct {
 type TableTestInsertTxWithSeq struct {
 	glentity.BaseEntityTs
 
-	TableId int64  `json:"tableId" gleaf:"pk seq"`
+	TableId int64  `json:"tableId" gleaf:"pk, seq"`
 	Name    string `json:"name"`
 }
 
@@ -35,41 +35,46 @@ func TestInsertQuery(t *testing.T) {
 	gldb.BeginTrx(func(trx pgx.Tx) error {
 
 		tableName := initTableTestInsertTx(trx)
-		err := insertTableTestInsertTx(trx, tableName)
-		logrus.Debug("Error insert table ", err)
+		inserted, err := insertTableTestInsertTx(trx, tableName)
+		logrus.Debug("RESULT err INSERT TABLE NO SEQ ", err)
+		if err != nil {
+			return err
+		}
 
 		var findBy TableTestInsertTx
-		errFindBy := gldb.FindByPkTx(trx, &findBy, tableName, 2)
-		logrus.Debug("Error find by ", errFindBy)
+		errFindBy := gldb.FindByPkTx(trx, &findBy, tableName, inserted.TableId)
+		logrus.Debug("FIND TABLE NO SEQ eer : ", errFindBy)
+		if errFindBy != nil {
+			return errFindBy
+		}
 
-		// tableWithSeq := initTableTestInsertTxWithTx(trx)
-		// errSeq := insertTableTestInsertTxWithSeq(trx, tableWithSeq)
-		// logrus.Debug("Error insert table with seq", errSeq)
+		logrus.Debug("START TEST WITH SEQUENCE ")
+		tableWithSeq := initTableTestInsertTxWithTx(trx)
+		data, errSeq := insertTableTestInsertTxWithSeq(trx, tableWithSeq)
+		logrus.Debug("errSeq INSERT TABLE WITH SEQ", errSeq)
 
-		// selectTestInsertTableWithSeq(trx, tableWithSeq)
+		selectTestInsertTableWithSeq(trx, tableWithSeq, data.TableId)
 
 		return nil
 	})
 
 }
 
-func selectTestInsertTableWithSeq(tx pgx.Tx, tableName string) error {
-	query := `SELECT * FROM ` + tableName
+func selectTestInsertTableWithSeq(tx pgx.Tx, tableName string, tableId int64) error {
+	query := `SELECT * FROM ` + tableName + ` WHERE table_id = $1 `
 
-	var list []*TableTestInsertTxWithSeq
+	var result TableTestInsertTxWithSeq
 
-	err := gldb.SelectTx(tx, &gldb.ReturnSelect{
-		Result: &list,
-	}, query)
+	err := gldb.SelectOneTx(tx, &result, query, tableId)
 
-	jsonByte, _ := json.Marshal(list)
+	jsonByte, _ := json.Marshal(result)
 	logrus.Debug("Data : ", string(jsonByte))
 
 	return err
 }
 
-func insertTableTestInsertTx(trx pgx.Tx, tableName string) error {
-	err := gldb.InsertTx(trx, TableTestInsertTx{
+func insertTableTestInsertTx(trx pgx.Tx, tableName string) (*TableTestInsertTx, error) {
+	data := TableTestInsertTx{
 		BaseEntityTs: glentity.BaseEntityTs{
 			CreateTimestamp: time.Now(),
 			UpdateTimestamp: time.Now(),
@@ -79,13 +84,15 @@ func insertTableTestInsertTx(trx pgx.Tx, tableName string) error {
 		},
 		TableId: 1,
 		Name:    "Name 1",
-	}, tableName)
+	}
 
-	return err
+	err := gldb.InsertTx(trx, &data, tableName)
+
+	return &data, err
 }
 
-func insertTableTestInsertTxWithSeq(trx pgx.Tx, tableName string) error {
-	err := gldb.InsertTx(trx, TableTestInsertTxWithSeq{
+func insertTableTestInsertTxWithSeq(trx pgx.Tx, tableName string) (*TableTestInsertTxWithSeq, error) {
+	data := TableTestInsertTxWithSeq{
 		BaseEntityTs: glentity.BaseEntityTs{
 			CreateTimestamp: time.Now(),
 			UpdateTimestamp: time.Now(),
@@ -94,15 +101,22 @@ func insertTableTestInsertTxWithSeq(trx pgx.Tx, tableName string) error {
 			Version:         0,
 		},
 		Name: "Name 1",
-	}, tableName)
+	}
 
-	return err
+	err := gldb.InsertTx(trx, &data, tableName)
+
+	jsonByte, _ := json.Marshal(data)
+
+	logrus.Debug("Data inserted with seq : ", string(jsonByte))
+
+	return &data, err
 }
 
 func initTableTestInsertTx(trx pgx.Tx) string {
 	tableName := `t_test_tabletx_` + glutil.DateTimeNow()
 
-	sql := `CREATE TABLE IF NOT EXISTS ` + tableName + `( ` +
+	sql := `DROP TABLE IF EXISTS ` + tableName + `; ` +
+		`CREATE TABLE IF NOT EXISTS ` + tableName + `( ` +
 		` table_id 	bigint, ` +
 		` name 		text, ` +
 		` create_timestamp 		timestamptz, ` +
@@ -110,7 +124,7 @@ func initTableTestInsertTx(trx pgx.Tx) string {
 		` create_user_id 		bigint, ` +
 		` update_user_id 		bigint, ` +
 		` version 		bigint ` +
-		`)`
+		`); `
 
 	gldb.ExecTx(trx, sql)
 
@@ -120,7 +134,8 @@ func initTableTestInsertTx(trx pgx.Tx) string {
 func initTableTestInsertTxWithTx(trx pgx.Tx) string {
 	tableName := `t_test_tablet_seq_` + glutil.DateTimeNow()
 
-	sql := `CREATE TABLE IF NOT EXISTS ` + tableName + `( ` +
+	sql := `DROP TABLE IF EXISTS ` + tableName + `; ` +
+		`CREATE TABLE IF NOT EXISTS ` + tableName + `( ` +
 		` table_id 	bigserial, ` +
 		` name 		text, ` +
 		` create_timestamp 		timestamptz, ` +
@@ -129,7 +144,6 @@ func initTableTestInsertTxWithTx(trx pgx.Tx) string {
 		` update_user_id 		bigint, ` +
 		` version 		bigint ` +
 		`)`
-
 	gldb.ExecTx(trx, sql)
 
 	return tableName
