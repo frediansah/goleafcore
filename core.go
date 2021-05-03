@@ -1,11 +1,11 @@
 package goleafcore
 
-import js "encoding/json"
+import "encoding/json"
 
 type Dto map[string]interface{}
 
 func (d Dto) ToJsonString() string {
-	jsonByte, err := js.Marshal(d)
+	jsonByte, err := json.Marshal(d)
 	if err != nil {
 		return "{}"
 	}
