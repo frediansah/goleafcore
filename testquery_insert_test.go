@@ -55,6 +55,11 @@ func TestInsertQuery(t *testing.T) {
 
 		selectTestInsertTableWithSeq(trx, tableWithSeq, data.TableId)
 
+		logrus.Debug("Insert twice ?   :")
+		data2, errSeq2 := insertTableTestInsertTxWithSeq(trx, tableWithSeq)
+		logrus.Debug("Insert result ?   :", data2)
+		logrus.Debug("Insert err2 ?   :", errSeq2)
+
 		return nil
 	})
 

@@ -219,17 +219,17 @@ func BeginTrx(trxFun TrxFunc) error {
 func queryInsertWithValues(obj interface{}, tableName string, values *[]interface{}) string {
 	cacheKey := genCacheKey(obj)
 
-	query, queryExists := cacheQueryI[cacheKey]
-	ignoreIndex, ignoreIndexExists := cacheIndexI[cacheKey]
+	// query, queryExists := cacheQueryI[cacheKey]
+	// ignoreIndex, ignoreIndexExists := cacheIndexI[cacheKey]
 
-	logrus.Debug("Cache insert index key ", cacheKey, " exists ? ", queryExists, " ", ignoreIndexExists)
-	if queryExists && ignoreIndexExists {
-		logrus.Debug("Use cache : ", query)
-		logrus.Debug("ignoreIdx : ", ignoreIndex)
+	// logrus.Debug("Cache insert index key ", cacheKey, " exists ? ", queryExists, " ", ignoreIndexExists)
+	// if queryExists && ignoreIndexExists {
+	// 	logrus.Debug("Use cache : ", query)
+	// 	logrus.Debug("ignoreIdx : ", ignoreIndex)
 
-		retriveValueExeptAt(obj, ignoreIndex, values)
-		return query
-	}
+	// 	retriveValueExeptAt(obj, ignoreIndex, values)
+	// 	return query
+	// }
 
 	columnNames := getColumnNamesWithValues(obj, "", values, TAG_VALUE_SEQUENCE)
 
@@ -246,34 +246,34 @@ func queryInsertWithValues(obj interface{}, tableName string, values *[]interfac
 	return result
 }
 
-func retriveValueExeptAt(obj interface{}, ignoreIndex []int, values *[]interface{}) {
-	t := reflect.TypeOf(obj)
-	o := reflect.ValueOf(obj)
+// func retriveValueExeptAt(obj interface{}, ignoreIndex []int, values *[]interface{}) {
+// 	t := reflect.TypeOf(obj)
+// 	o := reflect.ValueOf(obj)
 
-	if t.Kind() == reflect.Ptr {
-		o = o.Elem()
-	}
+// 	if t.Kind() == reflect.Ptr {
+// 		o = o.Elem()
+// 	}
 
-	for i := 0; i < o.NumField(); i++ {
-		if existInArray(i, ignoreIndex) {
-			continue
-		}
-		val := o.Field(i).Interface()
-		*values = append(*values, &val)
-	}
-}
+// 	for i := 0; i < o.NumField(); i++ {
+// 		if existInArray(i, ignoreIndex) {
+// 			continue
+// 		}
+// 		val := o.Field(i).Interface()
+// 		*values = append(*values, &val)
+// 	}
+// }
 
-func existInArray(elem int, arr []int) bool {
-	if len(arr) > 0 {
-		for _, item := range arr {
-			if elem == item {
-				return true
-			}
-		}
-	}
+// func existInArray(elem int, arr []int) bool {
+// 	if len(arr) > 0 {
+// 		for _, item := range arr {
+// 			if elem == item {
+// 				return true
+// 			}
+// 		}
+// 	}
 
-	return false
-}
+// 	return false
+// }
 
 func genCacheKey(obj interface{}) string {
 	t := reflect.TypeOf(obj)
