@@ -12,6 +12,7 @@ import (
 	"github.com/frediansah/goleafcore/glutil"
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/jackc/pgx/v4"
+	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 )
 
@@ -396,7 +397,7 @@ func GetColumnNames(obj interface{}, prefix string, ignoreTagValues ...string) [
 func isStructField(valueItem interface{}) bool {
 	switch valueItem.(type) {
 	case time.Time, sql.NullTime, sql.NullInt64, sql.NullString, sql.NullBool, sql.NullFloat64,
-		sql.NullInt32:
+		sql.NullInt32, decimal.Decimal:
 		return false
 	}
 
@@ -433,6 +434,12 @@ func getColumnNamesWithValues(obj interface{}, prefix string, values *[]interfac
 
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
+		logrus.Debug("Field  ", field)
+		logrus.Debug("Proses field ", field.Name, " --> ", field.Type.Kind())
+		if field.Type.Kind() == reflect.Ptr {
+			logrus.Debug("Nemu pointer lihat elem name: ", field.Type.Elem().Name())
+		}
+
 		valueItem := o.Field(i).Interface()
 
 		//logrus.Debug("Proses field ", field.Name, " --> ", valueItem)

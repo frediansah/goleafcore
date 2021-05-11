@@ -8,3 +8,14 @@ const YES string = "Y"
 const NO string = "N"
 const USER_SUPERADMIN int64 = -1
 const ROLE_SUPERADMIN int64 = -1
+
+const ENV_LOG_FILE string = "LOG_FILE"
+const ENV_LOG_LEVEL string = "LOG_LEVEL"
+const ENV_DB_NAME string = "DB_NAME"
+const ENV_DB_HOST string = "DB_HOST"
+const ENV_DB_PORT string = "DB_PORT"
+const ENV_DB_PASSWORD string = "DB_PASSWORD"
+const ENV_DB_USER string = "DB_USER"
+
+const LOG_FILE_DEFAULT string = "log/goleaf.log"
+const LOG_LEVEL_DEFAULT string = "debug"
