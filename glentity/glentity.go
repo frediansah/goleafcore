@@ -70,3 +70,7 @@ type MasterEntityMigrateTs struct {
 	UpdateUserId    int64     `json:"updateUserId"`
 	Version         int64     `json:"version"`
 }
+
+type Entity interface {
+	TableName() string
+}

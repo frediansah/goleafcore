@@ -46,8 +46,57 @@ func TestDto(t *testing.T) {
 	log.Println("Dto from anotherDto : ", dtoFromAnotherDto.ToJsonString())
 
 	decimalValue, _ := decimal.NewFromString("2442.234324")
+	sliceDto := []goleafcore.Dto{}
+	sliceDto = append(sliceDto, goleafcore.Dto{
+		"id": 1,
+	})
+	sliceDto = append(sliceDto, goleafcore.Dto{
+		"id": 2,
+	})
 
 	dtoFromAnotherDto.Put("decimal", decimalValue)
-	log.Println("Dto print decimal : ", dtoFromAnotherDto.ToJsonString())
+	dtoFromAnotherDto.Put("slice", []interface{}{"aku", "adalah", "anak", "gembala"})
+	dtoFromAnotherDto.Put("sliceDto", sliceDto)
 
+	decValue := dtoFromAnotherDto.GetDecimal("decimal", decimal.Zero)
+	containOraOno := dtoFromAnotherDto.ContainKeys("containOraOno")
+	valueSlice := dtoFromAnotherDto.GetSlice("slice", []interface{}{})
+
+	log.Println("sliceDto : ", dtoFromAnotherDto.GetSliceDto("sliceDto", []goleafcore.Dto{}))
+	log.Println("Decimal : ", decValue)
+	log.Println("containOraOno : ", containOraOno)
+	log.Println("Dto print decimal : ", dtoFromAnotherDto.ToJsonString())
+	log.Println("slice of interface : ", valueSlice)
+
+	sliceDtoFromGet := dtoFromAnotherDto.GetSliceDto("sliceDto", []goleafcore.Dto{})
+	log.Println("Item dto from get : ")
+	for _, itemDto := range sliceDtoFromGet {
+		log.Println("item ", itemDto.ToJsonString())
+	}
+
+}
+
+func TestDtoWithSlice(t *testing.T) {
+	str := `{"userList":[{"id":10, "name":"Name1"},{"id":11, "name":"Name2"}]}`
+
+	dto := goleafcore.NewOrEmpty(str)
+
+	userList := dto.GetSliceDto("userList", []goleafcore.Dto{})
+	log.Println("User list : ")
+	for _, userDto := range userList {
+		log.Println("User : ", userDto.ToJsonString())
+	}
+}
+
+func TestDtoGetDto(t *testing.T) {
+	str := `{"payload":{"status":"OK", "id":10}}`
+
+	dto := goleafcore.NewOrEmpty(str)
+
+	payloadDto := dto.GetDto("payload", goleafcore.Dto{})
+	log.Println("payloadDto : ", payloadDto.ToJsonString())
+
+	for key, val := range payloadDto {
+		log.Println("key : ", key, " --> val :", val)
+	}
 }

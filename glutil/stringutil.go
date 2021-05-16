@@ -1,6 +1,7 @@
 package glutil
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -22,5 +23,10 @@ func ToUnderedScore(str string) string {
 		return merged
 	}
 
+	return str
+}
+
+func ToString(value interface{}) string {
+	str := fmt.Sprintf("%v", value)
 	return str
 }

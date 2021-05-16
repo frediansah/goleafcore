@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/frediansah/goleafcore/glentity"
 	"github.com/frediansah/goleafcore/glinit"
 	"github.com/frediansah/goleafcore/glutil"
 	"github.com/georgysavva/scany/pgxscan"
@@ -20,7 +21,7 @@ const TAG_GLEAF string = "gleaf"
 const TAG_VALUE_PK string = "pk"
 const TAG_VALUE_SEQUENCE string = "seq"
 
-var cacheQueryI map[string]string = make(map[string]string)
+//var cacheQueryI map[string]string = make(map[string]string)
 var cacheIndexI map[string][]int = make(map[string][]int)
 
 type ReturnSelect struct {
@@ -31,6 +32,13 @@ type ReturnSelect struct {
 type TrxFunc = func(trx pgx.Tx) error
 
 func Insert(obj interface{}, tableName string) error {
+	if len(tableName) == 0 {
+		if objEntity, castOk := obj.(glentity.Entity); castOk {
+			tableName = objEntity.TableName()
+		} else {
+			return errors.New("error insert : please input non empty tableName otherwise implements func 'TableName() string' on the obj")
+		}
+	}
 
 	values := make([]interface{}, 0)
 	query := queryInsertWithValues(obj, tableName, &values)
@@ -53,7 +61,13 @@ func Insert(obj interface{}, tableName string) error {
 }
 
 func InsertTx(tx pgx.Tx, obj interface{}, tableName string) error {
-
+	if len(tableName) == 0 {
+		if objEntity, castOk := obj.(glentity.Entity); castOk {
+			tableName = objEntity.TableName()
+		} else {
+			return errors.New("error insert : please input non empty tableName otherwise implements func 'TableName() string' on the obj")
+		}
+	}
 	var values []interface{}
 	query := queryInsertWithValues(obj, tableName, &values)
 
@@ -105,6 +119,13 @@ func SelectOneTx(tx pgx.Tx, result interface{}, query string, params ...interfac
 
 func FindByPkTx(tx pgx.Tx, result interface{}, tableName string, pk interface{}) error {
 	logrus.Debug("Find by PK tx")
+	if len(tableName) == 0 {
+		if objEntity, castOk := result.(glentity.Entity); castOk {
+			tableName = objEntity.TableName()
+		} else {
+			return errors.New("error find by pk tx : please input non empty tableName otherwise implements func 'TableName() string' on the obj")
+		}
+	}
 
 	columns := GetColumnNames(result, "")
 	pkColumn := FindPkColumn(result, "")
@@ -122,15 +143,22 @@ func FindByPkTx(tx pgx.Tx, result interface{}, tableName string, pk interface{})
 	logrus.Debug("Query find by pk : ", query)
 
 	err := pgxscan.Get(glinit.DB_CTX, tx, result, query, pk)
-
-	logrus.Debug("error query : ", err)
-	logrus.Debug("Resuls query list : ", result)
+	if err != nil {
+		logrus.Debug("error query : ", err)
+	}
 
 	return err
 }
 
-func FindByPk(result *interface{}, tableName string, pk interface{}) error {
+func FindByPk(result interface{}, tableName string, pk interface{}) error {
 	logrus.Debug("Find by PK")
+	if len(tableName) == 0 {
+		if objEntity, castOk := result.(glentity.Entity); castOk {
+			tableName = objEntity.TableName()
+		} else {
+			return errors.New("error find by pk : please input non empty tableName otherwise implements func 'TableName() string' on the obj")
+		}
+	}
 	db := glinit.GetDB()
 
 	columns := GetColumnNames(result, "")
@@ -149,9 +177,9 @@ func FindByPk(result *interface{}, tableName string, pk interface{}) error {
 	logrus.Debug("Query find by pk : ", query)
 
 	err := pgxscan.Get(glinit.DB_CTX, db, result, query, pk)
-
-	logrus.Debug("error query : ", err)
-	logrus.Debug("Resuls query list : ", result)
+	if err != nil {
+		logrus.Debug("error query : ", err)
+	}
 
 	return err
 }
@@ -218,7 +246,7 @@ func BeginTrx(trxFun TrxFunc) error {
 }
 
 func queryInsertWithValues(obj interface{}, tableName string, values *[]interface{}) string {
-	cacheKey := genCacheKey(obj)
+	//cacheKey := genCacheKey(obj)
 
 	// query, queryExists := cacheQueryI[cacheKey]
 	// ignoreIndex, ignoreIndexExists := cacheIndexI[cacheKey]
@@ -241,8 +269,8 @@ func queryInsertWithValues(obj interface{}, tableName string, values *[]interfac
 		` VALUES (` + generateDolar(len(columnNames)) + `) ` +
 		` RETURNING * `
 
-	logrus.Debug("Put cache with key : ", cacheKey)
-	cacheQueryI[cacheKey] = result
+	//logrus.Debug("Put cache with key : ", cacheKey)
+	//cacheQueryI[cacheKey] = result
 
 	return result
 }
@@ -422,7 +450,7 @@ func getColumnNamesWithValues(obj interface{}, prefix string, values *[]interfac
 		o = o.Elem()
 	}
 
-	cacheKey := genCacheKey(obj)
+	//cacheKey := genCacheKey(obj)
 
 	if t.Kind() != reflect.Struct {
 		return make([]string, 0)
@@ -434,11 +462,11 @@ func getColumnNamesWithValues(obj interface{}, prefix string, values *[]interfac
 
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
-		logrus.Debug("Field  ", field)
-		logrus.Debug("Proses field ", field.Name, " --> ", field.Type.Kind())
-		if field.Type.Kind() == reflect.Ptr {
-			logrus.Debug("Nemu pointer lihat elem name: ", field.Type.Elem().Name())
-		}
+		//logrus.Debug("Field  ", field)
+		//logrus.Debug("Proses field ", field.Name, " --> ", field.Type.Kind())
+		// if field.Type.Kind() == reflect.Ptr {
+		// 	logrus.Debug("Nemu pointer lihat elem name: ", field.Type.Elem().Name())
+		// }
 
 		valueItem := o.Field(i).Interface()
 
@@ -458,7 +486,7 @@ func getColumnNamesWithValues(obj interface{}, prefix string, values *[]interfac
 		}
 	}
 
-	cacheIndexI[cacheKey] = ignoreKey
+	//cacheIndexI[cacheKey] = ignoreKey
 
 	return result
 }
