@@ -29,3 +29,6 @@ const HEADER_JWT_TASK string = "X-Jwt-Task"
 const HEADER_DATETIME string = "X-Datetime"
 
 const DEFAULT_TIMEZONE string = "+0700"
+
+const STATUS_OK string = "OK"
+const STATUS_FAIL string = "FAIL"

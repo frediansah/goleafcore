@@ -3,6 +3,7 @@ module github.com/frediansah/goleafcore
 go 1.16
 
 require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/georgysavva/scany v0.2.8
 	github.com/gofiber/fiber/v2 v2.8.0
 	github.com/jackc/pgproto3/v2 v2.0.7 // indirect

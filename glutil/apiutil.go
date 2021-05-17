@@ -11,24 +11,21 @@ import (
 	"github.com/frediansah/goleafcore"
 	"github.com/frediansah/goleafcore/glapi"
 	"github.com/frediansah/goleafcore/glconstant"
-	"github.com/frediansah/goleafcore/glutil"
 	"github.com/gofiber/fiber/v2"
 	"github.com/sirupsen/logrus"
-	"gitlab.com/stsvabca/vabcamid/pkg/constants"
-	"gitlab.com/stsvabca/vabcamid/pkg/models"
 )
 
-func ResponseError(err error) *models.OutgoingApi {
-	output := models.OutgoingApi{
-		Result: models.OutgoingApiResult{
-			Status:    constants.STATUS_FAIL,
+func ResponseError(err error) *goleafcore.OutgoingApi {
+	output := goleafcore.OutgoingApi{
+		Result: goleafcore.OutgoingApiResult{
+			Status:    glconstant.STATUS_FAIL,
 			ErrorCode: err.Error(),
 			ErrorMsg:  err.Error(),
 			ErrorArgs: []interface{}{},
 		},
 	}
 
-	if errCore, okCasting := err.(*models.CoreError); okCasting {
+	if errCore, okCasting := err.(*goleafcore.CoreError); okCasting {
 		output.Result.ErrorCode = errCore.ErrorCode
 		output.Result.ErrorMsg = errCore.ErrorMessage
 		output.Result.ErrorFullMsg = errCore.ErrorFullMessage
@@ -38,10 +35,10 @@ func ResponseError(err error) *models.OutgoingApi {
 	return &output
 }
 
-func ResponseSuccess(payload interface{}) *models.OutgoingApi {
-	output := models.OutgoingApi{
-		Result: models.OutgoingApiResult{
-			Status:    constants.STATUS_OK,
+func ResponseSuccess(payload interface{}) *goleafcore.OutgoingApi {
+	output := goleafcore.OutgoingApi{
+		Result: goleafcore.OutgoingApiResult{
+			Status:    glconstant.STATUS_OK,
 			ErrorCode: glconstant.EMPTY_VALUE,
 			ErrorMsg:  glconstant.EMPTY_VALUE,
 			ErrorArgs: []interface{}{},
@@ -58,7 +55,7 @@ func FetchAuditData(c *fiber.Ctx) (*goleafcore.AuditData, error) {
 		return nil, err
 	}
 
-	roleLoginId, _ := strconv.Atoi(c.Get(glconstant.HEADER_ROLE_ID, glutil.ToString(glclaim.Data.RoleId)))
+	roleLoginId, _ := strconv.Atoi(c.Get(glconstant.HEADER_ROLE_ID, ToString(glclaim.Data.RoleId)))
 	tenantLoginId := glclaim.Data.TenantId
 	if tenantLoginId == glconstant.TENANT_SUPERADMIN {
 		if tenantSuperAdmin, errTenantSuperadmin := strconv.Atoi(c.Get(glconstant.HEADER_TENANT_ID)); errTenantSuperadmin == nil {
@@ -117,14 +114,6 @@ func FetchGlClaim(c *fiber.Ctx) (*glapi.GoleafClaim, error) {
 			if err != nil {
 				return nil, errors.New("error decode base64 :" + err.Error())
 			}
-			// if err != nil {
-			// 	logrus.Error("Error decode token json :", err)
-			// } else {
-			// 	jwtDto, err := goleafcore.NewDto(tokenJsonByte)
-			// 	if err == nil {
-			// 		return jwtDto
-			// 	}
-			// }
 
 			var glclaim glapi.GoleafClaim
 			err = json.Unmarshal(tokenJsonByte, &glclaim)
@@ -134,5 +123,5 @@ func FetchGlClaim(c *fiber.Ctx) (*glapi.GoleafClaim, error) {
 		}
 	}
 
-	return goleafcore.Dto{}
+	return nil, errors.New("header Authorization not valid")
 }
