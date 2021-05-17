@@ -7,9 +7,10 @@ import (
 )
 
 type AuditData struct {
-	UserLoginId int64
-	RoleLoginId int64
-	Timestamp   time.Time
+	UserLoginId   int64
+	TenantLoginId int64
+	RoleLoginId   int64
+	Timestamp     time.Time
 }
 
 func (auditData AuditData) Datetime() string {

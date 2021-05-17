@@ -20,6 +20,11 @@ func (d Dto) ToJsonString() string {
 	return string(jsonByte)
 }
 
+func (d Dto) ToStruct(obj interface{}) error {
+	err := json.Unmarshal([]byte(d.ToJsonString()), obj)
+	return err
+}
+
 func (d Dto) Get(key string, defaultValue interface{}) interface{} {
 	val, exist := d[key]
 	if exist {

@@ -100,3 +100,29 @@ func TestDtoGetDto(t *testing.T) {
 		log.Println("key : ", key, " --> val :", val)
 	}
 }
+
+type DtoFromStructTest struct {
+	Id   int64  `json:"id"`
+	Name string `json:"name"`
+	Age  int    `json:"age"`
+}
+
+func TestToStruct(t *testing.T) {
+	obj := DtoFromStructTest{
+		Id:   10,
+		Name: "Kasel Aksa N",
+		Age:  1,
+	}
+
+	dto := goleafcore.NewOrEmpty(obj)
+
+	var objFromDto DtoFromStructTest
+	err := dto.ToStruct(&objFromDto)
+	if err != nil {
+		log.Println("Error dto to struct :", err.Error())
+	}
+
+	log.Println("Obj ori :", obj)
+	log.Println("Obj from dto :", objFromDto)
+
+}
