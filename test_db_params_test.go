@@ -20,6 +20,10 @@ func TestTestQParams(t *testing.T) {
 	p.Set("active", "Y")
 	p.Set("tenantId", 10)
 	p.Set("DRAFT", "D")
+	err := p.Set("raono", "Y")
+	if err != nil {
+		log.Println("error set params : ", err)
+	}
 
 	log.Println("Param values ", p.GetValues())
 }

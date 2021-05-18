@@ -1,6 +1,10 @@
 package gldb
 
-import "github.com/frediansah/goleafcore/glutil"
+import (
+	"errors"
+
+	"github.com/frediansah/goleafcore/glutil"
+)
 
 type Qparams struct {
 	counter     int
@@ -32,8 +36,13 @@ func (p *Qparams) New(key string) string {
 	return `$` + glutil.ToString(p.counter) + ` `
 }
 
-func (p *Qparams) Set(key string, value interface{}) {
+func (p *Qparams) Set(key string, value interface{}) error {
+	if _, exists := p.paramExists[key]; !exists {
+		return errors.New("param not found: " + key)
+	}
+
 	p.values[key] = value
+	return nil
 }
 
 func (p Qparams) GetMaps() map[string]interface{} {
