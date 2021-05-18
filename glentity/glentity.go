@@ -1,8 +1,9 @@
 package glentity
 
 import (
-	"database/sql"
 	"time"
+
+	"github.com/mattn/go-nulltype"
 )
 
 type BaseEntity struct {
@@ -43,9 +44,9 @@ type BaseEntityMigrateTs struct {
 }
 
 type MasterEntityTs struct {
-	Active             string       `json:"active"`
-	ActiveTimestamp    sql.NullTime `json:"activeTimestamp"`
-	NonActiveTimestamp sql.NullTime `json:"nonActiveTimestamp"`
+	Active             string            `json:"active"`
+	ActiveTimestamp    nulltype.NullTime `json:"activeTimestamp"`
+	NonActiveTimestamp nulltype.NullTime `json:"nonActiveTimestamp"`
 
 	CreateTimestamp time.Time `json:"createTimestamp"`
 	UpdateTimestamp time.Time `json:"updateTimestamp"`
@@ -60,9 +61,9 @@ type MasterEntityMigrateTs struct {
 	CreateDatetime    string `json:"createDatetime"`
 	UpdateDatetime    string `json:"updateDatetime"`
 
-	Active             string       `json:"active"`
-	ActiveTimestamp    sql.NullTime `json:"activeTimestamp"`
-	NonActiveTimestamp sql.NullTime `json:"nonActiveTimestamp"`
+	Active             string            `json:"active"`
+	ActiveTimestamp    nulltype.NullTime `json:"activeTimestamp"`
+	NonActiveTimestamp nulltype.NullTime `json:"nonActiveTimestamp"`
 
 	CreateTimestamp time.Time `json:"createTimestamp"`
 	UpdateTimestamp time.Time `json:"updateTimestamp"`
