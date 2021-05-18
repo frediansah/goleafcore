@@ -10,6 +10,7 @@ type Qparams struct {
 	counter     int
 	params      []string
 	paramExists map[string]bool
+	paramSet    map[string]bool
 	values      map[string]interface{}
 }
 
@@ -20,6 +21,10 @@ func (p *Qparams) New(key string) string {
 
 	if p.values == nil {
 		p.values = map[string]interface{}{}
+	}
+
+	if p.paramSet == nil {
+		p.paramSet = map[string]bool{}
 	}
 
 	if _, paramExists := p.paramExists[key]; !paramExists {
@@ -42,6 +47,8 @@ func (p *Qparams) Set(key string, value interface{}) error {
 	}
 
 	p.values[key] = value
+	p.paramSet[key] = true
+
 	return nil
 }
 
@@ -52,8 +59,10 @@ func (p Qparams) GetMaps() map[string]interface{} {
 func (p Qparams) GetValues() []interface{} {
 	var params []interface{}
 	for _, name := range p.params {
-		val := p.values[name]
-		params = append(params, val)
+		if _, hasSet := p.paramSet[name]; hasSet {
+			val := p.values[name]
+			params = append(params, val)
+		}
 	}
 
 	return params
