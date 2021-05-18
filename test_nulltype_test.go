@@ -1,8 +1,6 @@
 package goleafcore_test
 
 import (
-	"database/sql"
-	"log"
 	"testing"
 	"time"
 
@@ -13,50 +11,59 @@ import (
 	"github.com/frediansah/goleafcore/glinit"
 	"github.com/frediansah/goleafcore/glutil"
 	"github.com/jackc/pgx/v4"
+	"github.com/mattn/go-nulltype"
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 )
 
-type VaBillTrxBca struct {
-	BillTrxBcaId        int64           `json:"billTrxBcaId" gleaf:"pk,seq"`
-	VirtualAccountBcaId int64           `json:"virtualAccountBcaId"`
-	TenantId            int64           `json:"tenantId"`
-	AccountNo           string          `json:"accountNo"`
-	CompanyCode         string          `json:"companyCode"`
-	SubcompanyCode      string          `json:"subcompanyCode"`
-	AccountName         string          `json:"accountName"`
-	BillNumber          string          `json:"billNumber"`
-	BillTimestamp       time.Time       `json:"billTimestamp"`
-	BillDate            string          `json:"billDate"`
-	BillAmount          decimal.Decimal `json:"billAmount"`
-	CurrCode            string          `json:"currCode"`
-	BillDescriptionEn   string          `json:"billDescriptionEn"`
-	BillDescriptionId   string          `json:"billDescriptionId"`
-	BillFreeTextsEn     string          `json:"billFreeTextsEn"`
-	BillFreeTextsId     string          `json:"billFreeTextsId"`
-	RefDocNo            string          `json:"refDocNo"`
-	RefDocDate          string          `json:"refDocDate"`
-	RefDocId            int64           `json:"refDocId"`
-	RefDocTypeId        int64           `json:"refDocTypeId"`
-	PaidChannelType     string          `json:"paidChannelType"`
-	Remark              string          `json:"remark"`
-	StatusPayment       string          `json:"statusPayment"`
-	PaymentFlgStatusBca string          `json:"paymentFlgStatusBca"`
-	PaidTimestamp       sql.NullTime    `json:"paidTimestamp"`
-	CancelTimestamp     sql.NullTime    `json:"cancelTimetamp"`
-	BillReferenceBca    string          `json:"billReference"`
-	FlgExpired          string          `json:"flgExpired"`
-	ExpiredTimestamp    sql.NullTime    `json:"expiredTimestamp"`
+type VaBillTrxBcaTestNul struct {
+	BillTrxBcaId        int64             `json:"billTrxBcaId" gleaf:"pk,seq"`
+	VirtualAccountBcaId int64             `json:"virtualAccountBcaId"`
+	TenantId            int64             `json:"tenantId"`
+	AccountNo           string            `json:"accountNo"`
+	CompanyCode         string            `json:"companyCode"`
+	SubcompanyCode      string            `json:"subcompanyCode"`
+	AccountName         string            `json:"accountName"`
+	BillNumber          string            `json:"billNumber"`
+	BillTimestamp       time.Time         `json:"billTimestamp"`
+	BillDate            string            `json:"billDate"`
+	BillAmount          decimal.Decimal   `json:"billAmount"`
+	CurrCode            string            `json:"currCode"`
+	BillDescriptionEn   string            `json:"billDescriptionEn"`
+	BillDescriptionId   string            `json:"billDescriptionId"`
+	BillFreeTextsEn     string            `json:"billFreeTextsEn"`
+	BillFreeTextsId     string            `json:"billFreeTextsId"`
+	RefDocNo            string            `json:"refDocNo"`
+	RefDocDate          string            `json:"refDocDate"`
+	RefDocId            int64             `json:"refDocId"`
+	RefDocTypeId        int64             `json:"refDocTypeId"`
+	PaidChannelType     string            `json:"paidChannelType"`
+	Remark              string            `json:"remark"`
+	StatusPayment       string            `json:"statusPayment"`
+	PaymentFlgStatusBca string            `json:"paymentFlgStatusBca"`
+	PaidTimestamp       nulltype.NullTime `json:"paidTimestamp"`
+	CancelTimestamp     nulltype.NullTime `json:"cancelTimetamp"`
+	BillReferenceBca    string            `json:"billReference"`
+	FlgExpired          string            `json:"flgExpired"`
+	ExpiredTimestamp    nulltype.NullTime `json:"expiredTimestamp"`
 
 	glentity.BaseEntityTs
 }
 
-func TestEntityInsertError(t *testing.T) {
+var tableNameTestNull string = `t_test_table_null_` + glutil.DateTimeNow()
+
+func (e VaBillTrxBcaTestNul) TableName() string {
+	return tableNameTestNull
+}
+
+func TestNullType(t *testing.T) {
 	glinit.InitLog()
 	glinit.InitDb()
 
-	err := gldb.BeginTrx(func(trx pgx.Tx) error {
-		billTrx := VaBillTrxBca{
+	gldb.BeginTrx(func(trx pgx.Tx) error {
+		initTableTestNullType(trx)
+
+		billTrx := VaBillTrxBcaTestNul{
 			TenantId:            10,
 			VirtualAccountBcaId: 10,
 			AccountNo:           "0823572323",
@@ -80,20 +87,11 @@ func TestEntityInsertError(t *testing.T) {
 			Remark:              "Remark",
 			StatusPayment:       "D",
 			PaymentFlgStatusBca: glconstant.EMPTY_VALUE,
-			PaidTimestamp: sql.NullTime{
-				Time:  time.Now(),
-				Valid: false,
-			},
-			CancelTimestamp: sql.NullTime{
-				Time:  time.Now(),
-				Valid: false,
-			},
-			BillReferenceBca: glconstant.EMPTY_VALUE,
-			FlgExpired:       glconstant.NO,
-			ExpiredTimestamp: sql.NullTime{
-				Valid: true,
-				Time:  time.Now().Add(time.Second * time.Duration(20000)),
-			},
+			PaidTimestamp:       nulltype.NullTime{},
+			CancelTimestamp:     nulltype.NullTime{},
+			BillReferenceBca:    glconstant.EMPTY_VALUE,
+			FlgExpired:          glconstant.NO,
+			ExpiredTimestamp:    nulltype.NullTimeOf(time.Now().Add(time.Second * time.Duration(20000))),
 			BaseEntityTs: glentity.BaseEntityTs{
 				CreateTimestamp: time.Now(),
 				UpdateTimestamp: time.Now(),
@@ -103,24 +101,18 @@ func TestEntityInsertError(t *testing.T) {
 			},
 		}
 
-		tableName := initTableTestEntityError(trx)
-		errTrx := gldb.InsertTx(trx, &billTrx, tableName)
-		if errTrx != nil {
-			log.Println("Error : ", errTrx)
+		err := gldb.InsertTx(trx, &billTrx, "")
+		if err != nil {
+			logrus.Debug("Error insert with nul ? ", err)
 		}
-
-		log.Println("JSON : ", goleafcore.NewOrEmpty(billTrx).ToJsonString())
-
-		log.Println("TABLE NAME : ", tableName)
+		logrus.Debug("JSON : ", goleafcore.NewOrEmpty(billTrx).ToJsonString())
 
 		return nil
 	})
-
-	logrus.Debug("Error trx : ", err)
 }
 
-func initTableTestEntityError(trx pgx.Tx) string {
-	tableName := `t_test_table_entity_` + glutil.DateTimeNow()
+func initTableTestNullType(trx pgx.Tx) string {
+	tableName := tableNameTestNull
 
 	sql := `DROP TABLE IF EXISTS ` + tableName + `; ` +
 		`CREATE TABLE IF NOT EXISTS ` + tableName + `( ` +

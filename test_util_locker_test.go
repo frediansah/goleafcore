@@ -1,4 +1,4 @@
-package goleafcore
+package goleafcore_test
 
 import (
 	"testing"

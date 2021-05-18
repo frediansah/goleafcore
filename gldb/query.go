@@ -13,6 +13,7 @@ import (
 	"github.com/frediansah/goleafcore/glutil"
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/jackc/pgx/v4"
+	"github.com/mattn/go-nulltype"
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 )
@@ -22,7 +23,7 @@ const TAG_VALUE_PK string = "pk"
 const TAG_VALUE_SEQUENCE string = "seq"
 
 //var cacheQueryI map[string]string = make(map[string]string)
-var cacheIndexI map[string][]int = make(map[string][]int)
+//var cacheIndexI map[string][]int = make(map[string][]int)
 
 type ReturnSelect struct {
 	Error  error
@@ -304,14 +305,14 @@ func queryInsertWithValues(obj interface{}, tableName string, values *[]interfac
 // 	return false
 // }
 
-func genCacheKey(obj interface{}) string {
-	t := reflect.TypeOf(obj)
-	if t.Kind() == reflect.Ptr {
-		t = t.Elem()
-	}
+// func genCacheKey(obj interface{}) string {
+// 	t := reflect.TypeOf(obj)
+// 	if t.Kind() == reflect.Ptr {
+// 		t = t.Elem()
+// 	}
 
-	return t.PkgPath() + "/" + t.Name()
-}
+// 	return t.PkgPath() + "/" + t.Name()
+// }
 
 func generateDolar(length int) string {
 	result := ""
@@ -425,7 +426,7 @@ func GetColumnNames(obj interface{}, prefix string, ignoreTagValues ...string) [
 func isStructField(valueItem interface{}) bool {
 	switch valueItem.(type) {
 	case time.Time, sql.NullTime, sql.NullInt64, sql.NullString, sql.NullBool, sql.NullFloat64,
-		sql.NullInt32, decimal.Decimal:
+		sql.NullInt32, decimal.Decimal, nulltype.NullBool, nulltype.NullFloat64, nulltype.NullInt64, nulltype.NullString, nulltype.NullTime:
 		return false
 	}
 
@@ -458,7 +459,7 @@ func getColumnNamesWithValues(obj interface{}, prefix string, values *[]interfac
 
 	result := make([]string, 0)
 
-	ignoreKey := make([]int, 0)
+	//ignoreKey := make([]int, 0)
 
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
@@ -473,7 +474,7 @@ func getColumnNamesWithValues(obj interface{}, prefix string, values *[]interfac
 		//logrus.Debug("Proses field ", field.Name, " --> ", valueItem)
 
 		if checkForTags(field, ignoreTagValues...) {
-			ignoreKey = append(ignoreKey, i)
+			//ignoreKey = append(ignoreKey, i)
 			continue
 		}
 		if isStructField(valueItem) {

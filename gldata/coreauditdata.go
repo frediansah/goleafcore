@@ -1,4 +1,4 @@
-package goleafcore
+package gldata
 
 import (
 	"time"

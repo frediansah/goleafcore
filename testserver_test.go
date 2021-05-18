@@ -1,4 +1,4 @@
-package goleafcore
+package goleafcore_test
 
 // func testFiber(t *testing.T) {
 // 	glinit.InitLog()

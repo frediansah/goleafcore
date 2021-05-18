@@ -11,13 +11,14 @@ import (
 	"github.com/frediansah/goleafcore"
 	"github.com/frediansah/goleafcore/glapi"
 	"github.com/frediansah/goleafcore/glconstant"
+	"github.com/frediansah/goleafcore/gldata"
 	"github.com/gofiber/fiber/v2"
 	"github.com/sirupsen/logrus"
 )
 
-func ResponseError(err error) *goleafcore.OutgoingApi {
-	output := goleafcore.OutgoingApi{
-		Result: goleafcore.OutgoingApiResult{
+func ResponseError(err error) *glapi.OutgoingApi {
+	output := glapi.OutgoingApi{
+		Result: glapi.OutgoingApiResult{
 			Status:    glconstant.STATUS_FAIL,
 			ErrorCode: err.Error(),
 			ErrorMsg:  err.Error(),
@@ -35,9 +36,9 @@ func ResponseError(err error) *goleafcore.OutgoingApi {
 	return &output
 }
 
-func ResponseSuccess(payload interface{}) *goleafcore.OutgoingApi {
-	output := goleafcore.OutgoingApi{
-		Result: goleafcore.OutgoingApiResult{
+func ResponseSuccess(payload interface{}) *glapi.OutgoingApi {
+	output := glapi.OutgoingApi{
+		Result: glapi.OutgoingApiResult{
 			Status:    glconstant.STATUS_OK,
 			ErrorCode: glconstant.EMPTY_VALUE,
 			ErrorMsg:  glconstant.EMPTY_VALUE,
@@ -49,7 +50,7 @@ func ResponseSuccess(payload interface{}) *goleafcore.OutgoingApi {
 	return &output
 }
 
-func FetchAuditData(c *fiber.Ctx) (*goleafcore.AuditData, error) {
+func FetchAuditData(c *fiber.Ctx) (*gldata.AuditData, error) {
 	glclaim, err := FetchGlClaim(c)
 	if err != nil {
 		return nil, err
@@ -68,7 +69,7 @@ func FetchAuditData(c *fiber.Ctx) (*goleafcore.AuditData, error) {
 		timestamp = time.Now()
 	}
 
-	auditData := goleafcore.AuditData{
+	auditData := gldata.AuditData{
 		UserLoginId:   glclaim.Data.UserId,
 		RoleLoginId:   int64(roleLoginId),
 		TenantLoginId: tenantLoginId,

@@ -1,4 +1,4 @@
-package goleafcore
+package glapi
 
 type OutgoingApi struct {
 	Result OutgoingApiResult `json:"result"`
