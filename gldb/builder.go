@@ -2,7 +2,6 @@ package gldb
 
 import (
 	"errors"
-	"log"
 	"regexp"
 	"strings"
 
@@ -60,8 +59,11 @@ func (q *QBuilder) Query() string {
 	return replaceAllParamsWithDollarNumber(q.query, q.params)
 }
 
+func (q *QBuilder) QueryRaw() string {
+	return q.query
+}
+
 func (q *QBuilder) SetParam(name string, value interface{}) error {
-	log.Println("set param :", name, "  ->", value)
 	if q.params == nil {
 		q.params = fetchAllParams(q.query)
 	}
@@ -75,14 +77,10 @@ func (q *QBuilder) SetParam(name string, value interface{}) error {
 
 	q.paramValues[name] = value
 
-	log.Println("params : ", q.params)
-	log.Println("isi param values : ", q.paramValues)
-
 	return nil
 }
 
 func (q *QBuilder) GetParamValues() ([]interface{}, error) {
-	log.Println("param values ", q.paramValues)
 	if q.params == nil {
 		q.params = fetchAllParams(q.query)
 	}
@@ -118,8 +116,13 @@ func fetchAllParams(query string) []string {
 	mapMath := r.FindAllStringSubmatch(query, -1)
 
 	params := []string{}
+	paramMap := map[string]bool{}
 	for _, group := range mapMath {
-		params = append(params, group[1])
+		param := group[1]
+		if _, exists := paramMap[param]; !exists {
+			params = append(params, param)
+			paramMap[param] = true
+		}
 	}
 
 	return params

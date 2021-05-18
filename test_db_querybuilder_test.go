@@ -27,11 +27,14 @@ func TestQueryBuilderAllFeature(t *testing.T) {
 	q.Add(" SELECT user_id, tenant_id, username, version ").
 		Add(" FROM t_user ").
 		Add(" WHERE tenant_id = :tenantId ").
-		AddIfNotEmpty(keyword, " AND username ILIKE :username ").
+		AddIfNotEmpty(keyword, " AND ( username ILIKE :keyword "+
+			" OR password ILIKE :keyword "+
+			" OR email ILIKE :keyword "+
+			")").
 		AddIfNotEmpty(active, " AND active = :active ")
 
 	q.SetParam("tenantId", int64(-1))
-	q.SetParam("username", gldb.QWrapLikeBoth(keyword))
+	q.SetParam("keyword", gldb.QWrapLikeBoth(keyword))
 	q.SetParam("active", active)
 
 	log.Println("Query akhir :", q.Query())
