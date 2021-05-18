@@ -30,3 +30,15 @@ func ToString(value interface{}) string {
 	str := fmt.Sprintf("%v", value)
 	return str
 }
+
+func AppendSliceString(list []string, appender string) string {
+	var result string
+	for _, item := range list {
+		if len(result) > 0 {
+			result = result + appender
+		}
+
+		result = result + item
+	}
+	return result
+}
