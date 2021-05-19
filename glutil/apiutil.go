@@ -16,20 +16,25 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func ResponseError(err error) *glapi.OutgoingApi {
+func ResponseError(err error, prefix ...string) *glapi.OutgoingApi {
+	prefixFirst := ""
+	if len(prefix) > 0 {
+		prefixFirst = prefix[0]
+	}
+
 	output := glapi.OutgoingApi{
 		Result: glapi.OutgoingApiResult{
 			Status:    glconstant.STATUS_FAIL,
 			ErrorCode: err.Error(),
-			ErrorMsg:  err.Error(),
+			ErrorMsg:  prefixFirst + err.Error(),
 			ErrorArgs: []interface{}{},
 		},
 	}
 
 	if errCore, okCasting := err.(*goleafcore.CoreError); okCasting {
 		output.Result.ErrorCode = errCore.ErrorCode
-		output.Result.ErrorMsg = errCore.ErrorMessage
-		output.Result.ErrorFullMsg = errCore.ErrorFullMessage
+		output.Result.ErrorMsg = prefixFirst + errCore.ErrorMessage
+		output.Result.ErrorFullMsg = prefixFirst + errCore.ErrorFullMessage
 		output.Result.ErrorArgs = errCore.ErrorArgs
 	}
 
@@ -121,6 +126,8 @@ func FetchGlClaim(c *fiber.Ctx) (*glapi.GoleafClaim, error) {
 			if err != nil {
 				return nil, errors.New("error parse token as glclaim :" + err.Error())
 			}
+
+			return &glclaim, nil
 		}
 	}
 
