@@ -111,7 +111,7 @@ func (q *QBuilder) GetParamValues() ([]interface{}, error) {
 }
 
 func fetchAllParams(query string) []string {
-	patternParams := "[^:]:([a-zA-Z0-9]+)"
+	patternParams := "[^:]:([a-zA-Z0-9_]+)"
 	r, _ := regexp.Compile(patternParams)
 	mapMath := r.FindAllStringSubmatch(query, -1)
 

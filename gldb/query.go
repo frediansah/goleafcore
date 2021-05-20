@@ -53,7 +53,7 @@ func Insert(obj interface{}, tableName string) error {
 
 	err := pgxscan.Get(glinit.DB_CTX, db, obj, query, values...)
 
-	logrus.Debug("Result insert : ", obj)
+	//logrus.Debug("Result insert : ", obj)
 	if err != nil {
 		logrus.Error("Error on insert : ", err)
 	}
@@ -80,7 +80,7 @@ func InsertTx(tx pgx.Tx, obj interface{}, tableName string) error {
 	//logrus.Debug("Isi values from insert : ", arr)
 
 	err := pgxscan.Get(glinit.DB_CTX, tx, obj, query, values...)
-	logrus.Debug("Result insert : ", obj)
+	//logrus.Debug("Result insert : ", obj)
 	if err != nil {
 		logrus.Error("Error on insert : ", err)
 	}
@@ -119,7 +119,6 @@ func SelectOneTx(tx pgx.Tx, result interface{}, query string, params ...interfac
 }
 
 func FindByPkTx(tx pgx.Tx, result interface{}, tableName string, pk interface{}) error {
-	logrus.Debug("Find by PK tx")
 	if len(tableName) == 0 {
 		if objEntity, castOk := result.(glentity.Entity); castOk {
 			tableName = objEntity.TableName()
@@ -131,8 +130,8 @@ func FindByPkTx(tx pgx.Tx, result interface{}, tableName string, pk interface{})
 	columns := GetColumnNames(result, "")
 	pkColumn := FindPkColumn(result, "")
 
-	logrus.Debug("Columns : ", columns)
-	logrus.Debug("pk column : ", pkColumn)
+	//logrus.Debug("Columns : ", columns)
+	//logrus.Debug("pk column : ", pkColumn)
 
 	if len(pkColumn) <= 0 {
 		return errors.New("result struct does not have tag gleaf:\"pk\"")
@@ -165,8 +164,8 @@ func FindByPk(result interface{}, tableName string, pk interface{}) error {
 	columns := GetColumnNames(result, "")
 	pkColumn := FindPkColumn(result, "")
 
-	logrus.Debug("Columns : ", columns)
-	logrus.Debug("pk column : ", pkColumn)
+	//logrus.Debug("Columns : ", columns)
+	//logrus.Debug("pk column : ", pkColumn)
 
 	if len(pkColumn) <= 0 {
 		return errors.New("result struct does not have tag gleaf:\"pk\"")

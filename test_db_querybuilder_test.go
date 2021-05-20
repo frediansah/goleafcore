@@ -20,7 +20,7 @@ func TestQueryBuilderAllFeature(t *testing.T) {
 	db := glinit.InitDb()
 	defer db.Close()
 
-	var keyword string = "sup"
+	var keyword string = "No ono"
 	var active string = "Y"
 
 	q := gldb.QBuilder{}
